@@ -26,10 +26,12 @@ public class Main {
 	private static String carpetaFicheros = "/home/eneko/Documentos/";
 	//El sufijo es -page-2, así que para meterlo en un bucle quitamos el número y probamos hasta que no devuelva nada
 	private static String sufijoPaginacion= "-page";
+	static long inicio ;
 	
 	public static void main(String[] args) {
+		inicio = System.currentTimeMillis();
 		
-	   String ruta = "http://stackoverflow.com/questions/918237412";
+	   String ruta = "http://www.esprit.es/chaquetas-abrigos-hombre";
 	   String ficheroOferta = "Abrigos.txt";
 	   int codigo = getStatusConnectionCode(ruta);
 	   System.out.println("Código de la web : "+codigo);
@@ -114,6 +116,8 @@ public class Main {
 		        while ((linea = lectorHtml.readLine()) != null) {
 		            documentoHtmlCompleto += "\n"+linea;
 		        }
+		        long fin = System.currentTimeMillis() - inicio;
+    			JOptionPane.showMessageDialog(new JFrame(), "Página leida: "+fin);
 		        ArrayList<String> diferencia= compararHtml(documentoHtmlCompleto, documentoHtmlCompletoAnterior);
 		        if(!diferencia.isEmpty()){
 		        	String nuevosTexto="";

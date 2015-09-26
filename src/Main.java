@@ -121,30 +121,14 @@ public class Main {
 	    			url = stringUrl;
 	    		}
 	    		System.out.println("Compruebo: "+url);
-//		        is = url.openStream();  // throws an IOException
-//		        lectorHtml = new BufferedReader(new InputStreamReader(is));
-//		        while ((linea = lectorHtml.readLine()) != null) {
-//		            documentoHtmlCompleto += "\n"+linea;
-//		        }
 	    		documentoHtmlCompleto = getHtmlDocument(url).html();
-	    		//Podriamos utilizar el método String equals, pero habría que procesar primero los documentos antes
-	    		// de compararlos
-//		        ArrayList<String> diferencia= compararHtml(documentoHtmlCompleto, documentoHtmlCompletoAnterior);
-		        
-		        
-//		        	String nuevosTexto="";
-//	        		for(int i=0;i<diferencia.size();i++){
-//	        			nuevosTexto+=diferencia.get(i)+"\n";
-//	        		}
-				
-        		//System.out.println(nuevosTexto);
-//				documentoProcesadoAnterior = documentoHtmlCompleto;
 		        Document doc = Jsoup.parse(documentoHtmlCompleto);
 		        //Extraigo en otro documento solo el div con la lista
 		        Document doc2 = Jsoup.parse(doc.getElementById("styleoverview").html());
-		        
+		      
 		        Elements articulos = doc2.getElementsByClass("style");
 		        for (Element articulo : articulos){
+		        	//El selector span:nth-child(x) busca al padre de span y elige al elemento hijo en la posición x
 		        	documentoProcesado += "\n"+articulo.select("p.style-name span:nth-child(2)").text() + " -- "+articulo.getElementsByTag("a").attr("href");
 		        }
 		        System.out.println("pagina "+x);
@@ -248,45 +232,45 @@ public class Main {
 		return diferencia;
 	}
 	
-	public static ArrayList<String> compararHtml(String codHtml, String codHtml2){
-		BufferedReader lector = null;
-		ArrayList<String> diferencia = new ArrayList<String >();		
-		try{
-
-			BufferedReader reader = new BufferedReader(new StringReader(codHtml));
-			BufferedReader reader2;
-			
-			String linea1, linea2;
-			Boolean repetida;
-			while ((linea1 = reader.readLine()) != null){
-				repetida = false;
-				reader2 = new BufferedReader(new StringReader(codHtml2));
-				while((linea2 = reader2.readLine()) != null){
-					if(linea1.equals(linea2) || linea1.contains("data-pagenumber") || linea1.contains("applicationTime")){
-						repetida = true;
-						break;
-					}
-				}
-				if(!repetida){
-					diferencia.add(linea1);
-				}
-			}
-		}catch(FileNotFoundException e){
-			
-		}catch (IOException e) {
-			
-		}finally{
-			if (lector != null){
-				try {
-					lector.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-		return diferencia;
-	}
+//	public static ArrayList<String> compararHtml(String codHtml, String codHtml2){
+//		BufferedReader lector = null;
+//		ArrayList<String> diferencia = new ArrayList<String >();		
+//		try{
+//
+//			BufferedReader reader = new BufferedReader(new StringReader(codHtml));
+//			BufferedReader reader2;
+//			
+//			String linea1, linea2;
+//			Boolean repetida;
+//			while ((linea1 = reader.readLine()) != null){
+//				repetida = false;
+//				reader2 = new BufferedReader(new StringReader(codHtml2));
+//				while((linea2 = reader2.readLine()) != null){
+//					if(linea1.equals(linea2) || linea1.contains("data-pagenumber") || linea1.contains("applicationTime")){
+//						repetida = true;
+//						break;
+//					}
+//				}
+//				if(!repetida){
+//					diferencia.add(linea1);
+//				}
+//			}
+//		}catch(FileNotFoundException e){
+//			
+//		}catch (IOException e) {
+//			
+//		}finally{
+//			if (lector != null){
+//				try {
+//					lector.close();
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//		return diferencia;
+//	}
 	
 	/**
 	 * Con esta método compruebo el Status code de la respuesta que recibo al hacer la petición

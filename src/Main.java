@@ -10,7 +10,9 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -27,6 +29,10 @@ public class Main {
 	//El sufijo es -page-2, así que para meterlo en un bucle quitamos el número y probamos hasta que no devuelva nada
 	private static String sufijoPaginacion= "-page%s";
 	private static long inicio;
+<<<<<<< HEAD
+=======
+	
+>>>>>>> procesarHtml
 	public static void main(String[] args) {
 		inicio = System.currentTimeMillis();
 	   String ruta = "http://www.esprit.es/chaquetas-abrigos-hombre";
@@ -57,7 +63,11 @@ public class Main {
 	        	if (escribirArchivo(archivo, codHtml)){
 	        		String ar[]=nombreArchivo.split("/");
 	        		String nombreLimpio = ar[(ar.length-1)];
+<<<<<<< HEAD
 	    			long fin = System.currentTimeMillis() - inicio;
+=======
+	        		long fin = System.currentTimeMillis() - inicio;
+>>>>>>> procesarHtml
 	    			JOptionPane.showMessageDialog(new JFrame(), "Tiempo transcurrido: "+fin+"\nSe ha creado el archivo correctamente: "+nombreLimpio 
 	    					+"\nEn la carpeta:\n"+carpetaFicheros);
 	    		}
@@ -100,62 +110,44 @@ public class Main {
 	}
 	
 	public static String leerPagina(String stringUrl){
-		InputStream is = null;
-	    BufferedReader lectorHtml;
-	    String linea, documentoHtmlCompleto, documentoHtmlCompletoAnterior, documentoAGuardar;
-        documentoHtmlCompletoAnterior="";
+	    String  documentoProcesado, documentoProcesadoAnterior, documentoAGuardar;
+	    documentoProcesadoAnterior="";
         documentoAGuardar = "";
         int x=1;
 	    try {
 	    	String url;
 	    	Boolean iguales =false;
 	    	do{
-	    		documentoHtmlCompleto = "";
+	    		documentoProcesado = "";
 	    		if(x>1){
 	    			url = String.format(stringUrl+sufijoPaginacion,x);
 	    		}else{
 	    			url = stringUrl;
 	    		}
-	    		System.out.println("Compruebo: "+url);
-//		        is = url.openStream();  // throws an IOException
-//		        lectorHtml = new BufferedReader(new InputStreamReader(is));
-//		        while ((linea = lectorHtml.readLine()) != null) {
-//		            documentoHtmlCompleto += "\n"+linea;
-//		        }
-	    		documentoHtmlCompleto = getHtmlDocument(url).html();
-	    		//Podriamos utilizar el método String equals, pero habría que procesar primero los documentos antes
-	    		// de compararlos
-		        ArrayList<String> diferencia= compararHtml(documentoHtmlCompleto, documentoHtmlCompletoAnterior);
-		        
-		        if(!diferencia.isEmpty()){
-		        	String nuevosTexto="";
-	        		for(int i=0;i<diferencia.size();i++){
-	        			nuevosTexto+=diferencia.get(i)+"\n";
-	        		}
-	        		System.out.println("Hay diferencias");
-	        		//System.out.println(nuevosTexto);
-		        	documentoHtmlCompletoAnterior = documentoHtmlCompleto;
-			        Document doc = Jsoup.parse(documentoHtmlCompleto);
-			        //Extraigo en otro documento solo el div con la lista
-			        Document doc2 = Jsoup.parse(doc.getElementById("styleoverview").html());
-			        
-			        Elements articulos = doc2.getElementsByClass("style");
-			        for (Element articulo : articulos){
-			        	documentoAGuardar += "\n"+articulo.select("p.style-name span:nth-child(2)").text() + " -- "+articulo.getElementsByTag("a").attr("href");
-			        }
-			        System.out.println("pagina "+x);
+	    		System.out.println("Muestro: "+url);
+	    		
+		        Document doc = getHtmlDocument(url);
+		        //Extraigo en otro documento solo el div con la lista
+		        Element primerDiv = doc.getElementById("styleoverview");
+		      
+		        Elements articulos = primerDiv.getElementsByClass("style");
+		        for (Element articulo : articulos){
+		        	//El selector span:nth-child(x) busca al padre de span y elige al elemento hijo en la posición x
+		        	documentoProcesado += "\n"+articulo.select("p.style-name span:nth-child(2)").text() + " -- "+articulo.getElementsByTag("a").attr("href");
+		        }
+		        System.out.println("pagina "+x);
+			    if(!documentoProcesado.equals(documentoProcesadoAnterior)){
+			    	System.out.println("Hay diferencias");
+			    	documentoProcesadoAnterior = documentoProcesado;
+			    	documentoAGuardar += documentoProcesado;
 			        x++;
 		        }else{
 		        	System.out.println("Son iguales");
-		        	iguales=true;;
+		        	iguales=true;
 		        }
 	    	}while(!iguales);
 		} finally {
-	        try {
-	            if (is != null) is.close();
-	        } catch (IOException ioe) {
-	            // nothing to see here
-	        }
+	       
 		} 
 	    return documentoAGuardar;
 	}
@@ -221,46 +213,6 @@ public class Main {
 				if(!repetida){
 					String[] datos= linea1.split("--");
 					diferencia.add(datos);
-				}
-			}
-		}catch(FileNotFoundException e){
-			
-		}catch (IOException e) {
-			
-		}finally{
-			if (lector != null){
-				try {
-					lector.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-		return diferencia;
-	}
-	
-	public static ArrayList<String> compararHtml(String codHtml, String codHtml2){
-		BufferedReader lector = null;
-		ArrayList<String> diferencia = new ArrayList<String >();		
-		try{
-
-			BufferedReader reader = new BufferedReader(new StringReader(codHtml));
-			BufferedReader reader2;
-			
-			String linea1, linea2;
-			Boolean repetida;
-			while ((linea1 = reader.readLine()) != null){
-				repetida = false;
-				reader2 = new BufferedReader(new StringReader(codHtml2));
-				while((linea2 = reader2.readLine()) != null){
-					if(linea1.equals(linea2) || linea1.contains("data-pagenumber") || linea1.contains("applicationTime")){
-						repetida = true;
-						break;
-					}
-				}
-				if(!repetida){
-					diferencia.add(linea1);
 				}
 			}
 		}catch(FileNotFoundException e){

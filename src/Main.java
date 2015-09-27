@@ -103,9 +103,7 @@ public class Main {
 	}
 	
 	public static String leerPagina(String stringUrl){
-		InputStream is = null;
-	    BufferedReader lectorHtml;
-	    String linea, documentoHtmlCompleto, documentoProcesado, documentoProcesadoAnterior, documentoAGuardar;
+	    String  documentoProcesado, documentoProcesadoAnterior, documentoAGuardar;
 	    documentoProcesadoAnterior="";
         documentoAGuardar = "";
         int x=1;
@@ -113,20 +111,19 @@ public class Main {
 	    	String url;
 	    	Boolean iguales =false;
 	    	do{
-	    		documentoHtmlCompleto = "";
 	    		documentoProcesado = "";
 	    		if(x>1){
 	    			url = String.format(stringUrl+sufijoPaginacion,x);
 	    		}else{
 	    			url = stringUrl;
 	    		}
-	    		System.out.println("Compruebo: "+url);
-	    		documentoHtmlCompleto = getHtmlDocument(url).html();
-		        Document doc = Jsoup.parse(documentoHtmlCompleto);
+	    		System.out.println("Muestro: "+url);
+	    		
+		        Document doc = getHtmlDocument(url);
 		        //Extraigo en otro documento solo el div con la lista
-		        Document doc2 = Jsoup.parse(doc.getElementById("styleoverview").html());
+		        Element primerDiv = doc.getElementById("styleoverview");
 		      
-		        Elements articulos = doc2.getElementsByClass("style");
+		        Elements articulos = primerDiv.getElementsByClass("style");
 		        for (Element articulo : articulos){
 		        	//El selector span:nth-child(x) busca al padre de span y elige al elemento hijo en la posición x
 		        	documentoProcesado += "\n"+articulo.select("p.style-name span:nth-child(2)").text() + " -- "+articulo.getElementsByTag("a").attr("href");
@@ -143,11 +140,7 @@ public class Main {
 		        }
 	    	}while(!iguales);
 		} finally {
-	        try {
-	            if (is != null) is.close();
-	        } catch (IOException ioe) {
-	            // nothing to see here
-	        }
+	       
 		} 
 	    return documentoAGuardar;
 	}
@@ -231,46 +224,6 @@ public class Main {
 		}
 		return diferencia;
 	}
-	
-//	public static ArrayList<String> compararHtml(String codHtml, String codHtml2){
-//		BufferedReader lector = null;
-//		ArrayList<String> diferencia = new ArrayList<String >();		
-//		try{
-//
-//			BufferedReader reader = new BufferedReader(new StringReader(codHtml));
-//			BufferedReader reader2;
-//			
-//			String linea1, linea2;
-//			Boolean repetida;
-//			while ((linea1 = reader.readLine()) != null){
-//				repetida = false;
-//				reader2 = new BufferedReader(new StringReader(codHtml2));
-//				while((linea2 = reader2.readLine()) != null){
-//					if(linea1.equals(linea2) || linea1.contains("data-pagenumber") || linea1.contains("applicationTime")){
-//						repetida = true;
-//						break;
-//					}
-//				}
-//				if(!repetida){
-//					diferencia.add(linea1);
-//				}
-//			}
-//		}catch(FileNotFoundException e){
-//			
-//		}catch (IOException e) {
-//			
-//		}finally{
-//			if (lector != null){
-//				try {
-//					lector.close();
-//				} catch (IOException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			}
-//		}
-//		return diferencia;
-//	}
 	
 	/**
 	 * Con esta método compruebo el Status code de la respuesta que recibo al hacer la petición

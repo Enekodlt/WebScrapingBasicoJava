@@ -29,10 +29,7 @@ public class Main {
 	//El sufijo es -page-2, así que para meterlo en un bucle quitamos el número y probamos hasta que no devuelva nada
 	private static String sufijoPaginacion= "-page%s";
 	private static long inicio;
-<<<<<<< HEAD
-=======
-	
->>>>>>> procesarHtml
+
 	public static void main(String[] args) {
 		inicio = System.currentTimeMillis();
 	   String ruta = "http://www.esprit.es/chaquetas-abrigos-hombre";
@@ -63,11 +60,7 @@ public class Main {
 	        	if (escribirArchivo(archivo, codHtml)){
 	        		String ar[]=nombreArchivo.split("/");
 	        		String nombreLimpio = ar[(ar.length-1)];
-<<<<<<< HEAD
-	    			long fin = System.currentTimeMillis() - inicio;
-=======
 	        		long fin = System.currentTimeMillis() - inicio;
->>>>>>> procesarHtml
 	    			JOptionPane.showMessageDialog(new JFrame(), "Tiempo transcurrido: "+fin+"\nSe ha creado el archivo correctamente: "+nombreLimpio 
 	    					+"\nEn la carpeta:\n"+carpetaFicheros);
 	    		}

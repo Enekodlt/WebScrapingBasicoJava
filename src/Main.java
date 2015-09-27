@@ -25,12 +25,10 @@ public class Main {
 	
 	private static String carpetaFicheros = "/home/eneko/Documentos/";
 	//El sufijo es -page-2, así que para meterlo en un bucle quitamos el número y probamos hasta que no devuelva nada
-	private static String sufijoPaginacion= "-page";
-	static long inicio ;
-	
+	private static String sufijoPaginacion= "-page%s";
+	private static long inicio;
 	public static void main(String[] args) {
 		inicio = System.currentTimeMillis();
-		
 	   String ruta = "http://www.esprit.es/chaquetas-abrigos-hombre";
 	   String ficheroOferta = "Abrigos.txt";
 	   int codigo = getStatusConnectionCode(ruta);
@@ -42,19 +40,25 @@ public class Main {
 		   JOptionPane.showMessageDialog(new JFrame(), "No se ha podido cargar la página.\n El status code que "
 		   		+ "devuelve la página es: "+codigo);
 	   }
-
 		System.exit(0);
 	}
-	
+	/**
+	 * Compara el archivo donde guardamos la información con lo que hay actualmente en la página.
+	 * Si hay diferencias da la opción de abrir las novedades en pestañas de firefox
+	 * Si no existe archivo lo crea.
+	 * @param url
+	 * @param nombreArchivo
+	 */
 	public static void crearOComprobarArchivo(String url, String nombreArchivo){
 			File archivo = new File(nombreArchivo);
 		    
 	        if (!archivo.exists()){
 	        	String codHtml = leerPagina(url);
-	        	if (escribirArchivo(archivo, codHtml)==true){
+	        	if (escribirArchivo(archivo, codHtml)){
 	        		String ar[]=nombreArchivo.split("/");
 	        		String nombreLimpio = ar[(ar.length-1)];
-	    			JOptionPane.showMessageDialog(new JFrame(), "Se ha creado el archivo correctamente: "+nombreLimpio 
+	    			long fin = System.currentTimeMillis() - inicio;
+	    			JOptionPane.showMessageDialog(new JFrame(), "Tiempo transcurrido: "+fin+"\nSe ha creado el archivo correctamente: "+nombreLimpio 
 	    					+"\nEn la carpeta:\n"+carpetaFicheros);
 	    		}
 	        }else{
@@ -63,6 +67,7 @@ public class Main {
 	        	if (!diferenciaArtículos.isEmpty()){
 	        		int cantidadNuevos=diferenciaArtículos.size();
 	        		String nuevosTexto="";
+	        		//Rellenar string nuevosTexto para mostrarlo en JOptionPane
 	        		for(int i=0;i<cantidadNuevos;i++){
 	        			nuevosTexto+=diferenciaArtículos.get(i)[0]+"\n";
 	        		}
@@ -102,28 +107,32 @@ public class Main {
         documentoAGuardar = "";
         int x=1;
 	    try {
-	    	URL url;
+	    	String url;
+	    	Boolean iguales =false;
 	    	do{
 	    		documentoHtmlCompleto = "";
 	    		if(x>1){
-	    			url = new URL(stringUrl+sufijoPaginacion+x);
+	    			url = String.format(stringUrl+sufijoPaginacion,x);
 	    		}else{
-	    			url = new URL(stringUrl);
+	    			url = stringUrl;
 	    		}
-	    		System.out.println(url);
-		        is = url.openStream();  // throws an IOException
-		        lectorHtml = new BufferedReader(new InputStreamReader(is));
-		        while ((linea = lectorHtml.readLine()) != null) {
-		            documentoHtmlCompleto += "\n"+linea;
-		        }
-		        long fin = System.currentTimeMillis() - inicio;
-    			JOptionPane.showMessageDialog(new JFrame(), "Página leida: "+fin);
+	    		System.out.println("Compruebo: "+url);
+//		        is = url.openStream();  // throws an IOException
+//		        lectorHtml = new BufferedReader(new InputStreamReader(is));
+//		        while ((linea = lectorHtml.readLine()) != null) {
+//		            documentoHtmlCompleto += "\n"+linea;
+//		        }
+	    		documentoHtmlCompleto = getHtmlDocument(url).html();
+	    		//Podriamos utilizar el método String equals, pero habría que procesar primero los documentos antes
+	    		// de compararlos
 		        ArrayList<String> diferencia= compararHtml(documentoHtmlCompleto, documentoHtmlCompletoAnterior);
+		        
 		        if(!diferencia.isEmpty()){
 		        	String nuevosTexto="";
 	        		for(int i=0;i<diferencia.size();i++){
 	        			nuevosTexto+=diferencia.get(i)+"\n";
 	        		}
+	        		System.out.println("Hay diferencias");
 	        		//System.out.println(nuevosTexto);
 		        	documentoHtmlCompletoAnterior = documentoHtmlCompleto;
 			        Document doc = Jsoup.parse(documentoHtmlCompleto);
@@ -137,13 +146,10 @@ public class Main {
 			        System.out.println("pagina "+x);
 			        x++;
 		        }else{
-		        	break;
+		        	System.out.println("Son iguales");
+		        	iguales=true;;
 		        }
-	    	}while(x>1);
-		} catch (MalformedURLException mue) {
-         mue.printStackTrace();
-		} catch (IOException ioe) {
-         ioe.printStackTrace();
+	    	}while(!iguales);
 		} finally {
 	        try {
 	            if (is != null) is.close();
@@ -295,5 +301,22 @@ public class Main {
 		System.out.println("Excepción al obtener el Status Code: " + ex.getMessage());
 	    }
 	    return response.statusCode();
+	}
+	
+	/**
+	 * Con este método devuelvo un objeto de la clase Document con el contenido del
+	 * HTML de la web que me permitirá parsearlo con los métodos de la librelia JSoup
+	 * @param url
+	 * @return Documento con el HTML
+	 */
+	public static Document getHtmlDocument(String url) {
+
+	    Document doc = null;
+		try {
+		    doc = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(100000).get();
+		    } catch (IOException ex) {
+			System.out.println("Excepción al obtener el HTML de la página" + ex.getMessage());
+		    }
+	    return doc;
 	}
 }

@@ -5,14 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.sql.Time;
 import java.util.ArrayList;
-import java.util.Date;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -26,9 +20,8 @@ import org.jsoup.select.Elements;
 public class Main {
 	
 	//Yo le indico la carpeta en la que quiero que lo guarde.
-	//Quítalo si quieres y el archivo aparecerá en la carpeta del proyecto.
+	//Cambialo o Qqítalo si quieres y el archivo aparecerá en la carpeta del proyecto.
 	private static String carpetaFicheros = "/home/eneko/Documentos/";
-	
 	//El sufijo es -page2, así que dejamos el String listo para añadirle un parámetro con el número de página
 	private static String sufijoPaginacion= "-page%s";
 	private static long inicio;
@@ -48,6 +41,7 @@ public class Main {
 	   }
 		System.exit(0);
 	}
+	
 	/**
 	 * Compara el archivo donde guardamos la información con lo que hay actualmente en la página.
 	 * Si hay diferencias da la opción de abrir las novedades en pestañas de firefox
@@ -59,8 +53,8 @@ public class Main {
 			File archivo = new File(nombreArchivo);
 		    
 	        if (!archivo.exists()){
-	        	String codHtml = leerPagina(url);
-	        	if (escribirArchivo(archivo, codHtml)){
+	        	String textoProcesado = leerPagina(url);
+	        	if (escribirArchivo(textoProcesado, archivo)){
 	        		String ar[]=nombreArchivo.split("/");
 	        		String nombreLimpio = ar[(ar.length-1)];
 	        		long fin = System.currentTimeMillis() - inicio;
@@ -68,8 +62,8 @@ public class Main {
 	    					+"\nEn la carpeta:\n"+carpetaFicheros);
 	    		}
 	        }else{
-	        	String codHtml = leerPagina(url);
-	        	ArrayList<String[]> diferenciaArtículos = compararArchivoYCodigo(archivo, codHtml);
+	        	String textoProcesado = leerPagina(url);
+	        	ArrayList<String[]> diferenciaArtículos = compararArchivoYCodigo(archivo, textoProcesado);
 	        	if (!diferenciaArtículos.isEmpty()){
 	        		int cantidadNuevos=diferenciaArtículos.size();
 	        		String nuevosTexto="";
@@ -82,8 +76,9 @@ public class Main {
 	        		+nuevosTexto,
 	        				"Nuevos abrigos", JOptionPane.INFORMATION_MESSAGE, 1, null, botones, botones[0]);
 	        		if(respuesta == 0){
-	        			//Se pueden abrir pestañas de firefox de 2 en 2. Hay que añadir un espacio entre dos URL
-	        			//Si abro más de 2 a la vez, abre una nueva ventana con todas las pestañas
+	        			/*Se pueden abrir pestañas de firefox de 2 en 2. Hay que añadir un espacio entre dos URL
+	        			Si se abren más de 2 a la vez, abre una nueva ventana con todas las pestañas.
+	        			Yo prefiero que se vayan abriendo poco a poco en la misma ventana que estoy*/	            		
 	            		try {
 	            			for(int x=0;x<diferenciaArtículos.size();x++){
 	            				String dirAbrigo=diferenciaArtículos.get(x)[1].trim();
@@ -107,13 +102,18 @@ public class Main {
 	        }
 	}
 	
+	/**
+	 * Lee la página que pasemos como parámetro, filtra el texto y devuelve el resultado
+	 * @param stringUrl
+	 * @return
+	 */
 	public static String leerPagina(String stringUrl){
 	    String  documentoProcesado, documentoProcesadoAnterior, documentoAGuardar;
 	    documentoProcesadoAnterior="";
         documentoAGuardar = "";
         int x=1;
     	String url;
-    	Boolean iguales =false;
+    	Boolean iguales = false;
     	/*
     	 * Esta web, devuelve contenido repetido si intentamos leer un indice de página que no existe.
     	 * Si solo hay 2 páginas e intentamos leer la 3, nos volverá a enseñar la 2.
@@ -146,12 +146,18 @@ public class Main {
 	    return documentoAGuardar;
 	}
 	
-	public static Boolean escribirArchivo(File archivo, String codHtml){
+	/**
+	 * Escribe un texto dentro del archivo
+	 * @param archivo
+	 * @param textoProcesado
+	 * @return
+	 */
+	public static Boolean escribirArchivo(String textoProcesado, File archivo){
 		FileWriter escritor = null;
 		Boolean escribeBien;
 		try{
 			escritor = new FileWriter(archivo);
-			escritor.write(codHtml);
+			escritor.write(textoProcesado);
 			escribeBien = true;
 		}catch(FileNotFoundException e){
 			System.out.println("No existe el fichero o la carpeta");
@@ -159,7 +165,6 @@ public class Main {
 					+" \n\nEn la carpeta:\n"+carpetaFicheros);
 			escribeBien = false;
 		}catch(IOException e){
-			System.out.println("algo ha fallado");
 			JOptionPane.showMessageDialog(new JFrame(), "Ha ocurrido algún error creando el nuevo fichero"
 					+" \n\nEn la carpeta:\n"+carpetaFicheros);
 			escribeBien = false;
@@ -175,21 +180,23 @@ public class Main {
 		return escribeBien;
 	}
 	
-	public static ArrayList<String[]> compararArchivoYCodigo(File fil, String codHtml){
+	/**
+	 * Compara el texto del archivo donde guardamos con otra cadena
+	 * @param fil
+	 * @param textoProcesado
+	 * @return
+	 */
+	public static ArrayList<String[]> compararArchivoYCodigo(File fil, String textoProcesado){
 		FileReader archivo;
 		BufferedReader lector = null;
 		ArrayList<String[]> diferencia = new ArrayList<String []>();		
 		try{
-			BufferedReader reader = new BufferedReader(new StringReader(codHtml));
+			BufferedReader reader = new BufferedReader(new StringReader(textoProcesado));
 			archivo = new FileReader(fil);
 			lector = new BufferedReader(archivo);
 			String linea1, linea2;
-			Boolean repetida;
 			while ((linea1 = lector.readLine()) != null){
-				repetida = false;
 				linea2=reader.readLine();
-				System.out.println(linea1);
-				System.out.println(linea2);
 				if(!linea1.equals(linea2)){
 					String[] datos= linea1.split("--");
 					diferencia.add(datos);

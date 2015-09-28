@@ -20,13 +20,14 @@ import org.jsoup.select.Elements;
 public class Main {
 	
 	//Yo le indico la carpeta en la que quiero que lo guarde.
-	//Cambialo o Qqítalo si quieres y el archivo aparecerá en la carpeta del proyecto.
-	private static String carpetaFicheros = "/home/eneko/Documentos/";
+	//Cambialo o quítalo si quieres y el archivo aparecerá en workspace.
+	private static String carpetaFicheros;
 	//El sufijo es -page2, así que dejamos el String listo para añadirle un parámetro con el número de página
 	private static String sufijoPaginacion= "-page%s";
 	private static long inicio;
 
 	public static void main(String[] args) {
+		carpetaFicheros = System.getProperty("user.dir")+"/";
 		inicio = System.currentTimeMillis();
 	   String ruta = "http://www.esprit.es/chaquetas-abrigos-hombre";
 	   String ficheroOferta = "Abrigos.txt";
